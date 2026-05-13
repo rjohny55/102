@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import GameBoard from '../components/GameBoard';
+import client from '../api/client';
 
 interface GameResult {
   score: number;
@@ -39,23 +40,15 @@ const GamePage: React.FC = () => {
     setSaveMessage(null);
 
     try {
-      const response = await fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          score: gameResult.score,
-          level: gameResult.level,
-          moves: gameResult.moves,
-        }),
+      await client.post('/api/scores', {
+        score: gameResult.score,
+        level: gameResult.level,
+        moves: gameResult.moves,
       });
 
-      if (response.ok) {
-        setSaveMessage('Score saved successfully!');
-      } else {
-        setSaveMessage('Failed to save score. Please try again.');
-      }
+      setSaveMessage('Score saved successfully!');
     } catch {
-      setSaveMessage('Network error. Score could not be saved.');
+      setSaveMessage('Failed to save score. Please try again.');
     } finally {
       setSaving(false);
     }
