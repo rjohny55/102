@@ -15,6 +15,14 @@ vi.mock('../../context/AuthContext', () => ({
   }),
 }));
 
+// Mock the API client (axios-based) — the production code now uses client.post()
+const mockClientPost = vi.hoisted(() => vi.fn());
+vi.mock('../../api/client', () => ({
+  default: {
+    post: mockClientPost,
+  },
+}));
+
 // Mock GameBoard to trigger onGameOver with test values
 vi.mock('../../components/GameBoard', () => ({
   default: ({ onGameOver, onUpdate }: { onGameOver: (score: number, level: number, moves: number) => void; onUpdate: (...args: unknown[]) => void }) => {
@@ -41,8 +49,6 @@ import GamePage from '../GamePage';
 describe('GamePage', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    // Mock global fetch
-    globalThis.fetch = vi.fn();
   });
 
   it('renders without crashing', () => {
@@ -83,11 +89,8 @@ describe('GamePage', () => {
     expect(screen.getByText('Play Again')).toBeTruthy();
   });
 
-  it('saves score to the correct API endpoint (/api/scores)', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-    });
-    globalThis.fetch = mockFetch;
+  it('saves score via client.post with correct endpoint and body', async () => {
+    mockClientPost.mockResolvedValue({ data: { id: 1 } });
 
     render(
       <MemoryRouter>
@@ -102,26 +105,19 @@ describe('GamePage', () => {
     fireEvent.click(screen.getByText('Save Score'));
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockClientPost).toHaveBeenCalledTimes(1);
     });
 
-    // Verify the URL is /api/scores (not /api/game/scores)
-    const callArgs = mockFetch.mock.calls[0];
-    expect(callArgs[0]).toBe('/api/scores');
-
-    // Verify it's a POST request with correct body
-    expect(callArgs[1]?.method ?? 'POST').toBe('POST');
-    const body = JSON.parse(callArgs[1]?.body ?? '{}');
-    expect(body.score).toBe(100);
-    expect(body.level).toBe(2);
-    expect(body.moves).toBe(15);
+    // Verify client.post was called with the correct URL and body
+    expect(mockClientPost).toHaveBeenCalledWith('/api/scores', {
+      score: 100,
+      level: 2,
+      moves: 15,
+    });
   });
 
-  it('shows success message when score is saved', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-    });
-    globalThis.fetch = mockFetch;
+  it('shows success message when score is saved successfully', async () => {
+    mockClientPost.mockResolvedValue({ data: { id: 1 } });
 
     render(
       <MemoryRouter>
@@ -137,11 +133,8 @@ describe('GamePage', () => {
     });
   });
 
-  it('shows failure message when score save fails', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: false,
-    });
-    globalThis.fetch = mockFetch;
+  it('shows failure message when client.post rejects', async () => {
+    mockClientPost.mockRejectedValue(new Error('Request failed'));
 
     render(
       <MemoryRouter>
@@ -154,24 +147,6 @@ describe('GamePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to save score. Please try again.')).toBeTruthy();
-    });
-  });
-
-  it('shows network error message when fetch throws', async () => {
-    const mockFetch = vi.fn().mockRejectedValue(new Error('Network error'));
-    globalThis.fetch = mockFetch;
-
-    render(
-      <MemoryRouter>
-        <GamePage />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByTestId('trigger-game-over'));
-    fireEvent.click(screen.getByText('Save Score'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Network error. Score could not be saved.')).toBeTruthy();
     });
   });
 
@@ -196,9 +171,8 @@ describe('GamePage', () => {
   });
 
   it('shows Save Score button as disabled while saving', async () => {
-    // Create a fetch mock that never resolves to test the saving state
-    const mockFetch = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
-    globalThis.fetch = mockFetch;
+    // Create a mock that never resolves to test the saving state
+    mockClientPost.mockReturnValue(new Promise(() => {})); // never resolves
 
     render(
       <MemoryRouter>
