@@ -18,5 +18,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: [],
     css: true,
+    env: {
+      NODE_ENV: 'test',
+    },
   },
 });
