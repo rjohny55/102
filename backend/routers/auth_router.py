@@ -27,7 +27,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token(data={"sub": user.id})
-    return TokenResponse(access_token=token)
+    return TokenResponse(access_token=token, user=user)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -40,4 +40,4 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
         )
 
     token = create_access_token(data={"sub": user.id})
-    return TokenResponse(access_token=token)
+    return TokenResponse(access_token=token, user=user)
