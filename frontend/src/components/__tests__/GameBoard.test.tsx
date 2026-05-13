@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import GameBoard from '../GameBoard';
 
 describe('GameBoard', () => {
@@ -15,10 +15,11 @@ describe('GameBoard', () => {
     expect(startButton).not.toBeNull();
   });
 
-  it('calls onUpdate callback when game state changes', () => {
-    const onUpdate = jest.fn();
+  it('calls onUpdate callback on mount with initial values', () => {
+    const onUpdate = vi.fn();
     render(<GameBoard onUpdate={onUpdate} />);
-    // After mount with empty board, game hasn't started yet
-    expect(onUpdate).not.toHaveBeenCalled();
+    // During mount, onUpdate fires once with initial state: score=0, level=1, timeLeft=60, isPlaying=false
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    expect(onUpdate).toHaveBeenCalledWith(0, 1, 60, false);
   });
 });

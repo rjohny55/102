@@ -10,7 +10,7 @@ import {
   getRandomTileType,
   resetTileIdCounter,
 } from '../boardLogic';
-import { TileType, Board, Tile } from '../types';
+import { TileType, Board } from '../types';
 import { ROWS, COLS, TILE_TYPES_COUNT } from '../constants';
 
 describe('boardLogic', () => {
@@ -27,13 +27,6 @@ describe('boardLogic', () => {
         type: type as TileType,
         position: { row: r, col: c },
       })),
-    );
-  }
-
-  // Helper to convert board to type numbers for comparison
-  function boardToTypes(board: Board): number[][] {
-    return board.map((row) =>
-      row.map((tile) => (tile !== null ? tile.type : -1)),
     );
   }
 
@@ -250,10 +243,11 @@ describe('boardLogic', () => {
 
   describe('dropTiles', () => {
     it('drops tiles down to fill gaps in a column', () => {
-      // Column 0: null at row 0 and 1, tiles at rows 2-7
+      // Simulate matches removed from rows 3-5 in column 0 (those become null)
+      // Tiles at rows 0-2 should fall down to fill the gaps at rows 3-5
       const board: Board = Array.from({ length: ROWS }, (_, r) =>
         Array.from({ length: COLS }, (_, c) => {
-          if (c === 0 && r < 2) return null;
+          if (c === 0 && r >= 3 && r <= 5) return null;
           return {
             id: `t-${r}-${c}`,
             type: ((r + c) % 6) as TileType,
@@ -262,21 +256,24 @@ describe('boardLogic', () => {
         }),
       );
       const { board: droppedBoard } = dropTiles(board);
-      // Rows 0-5 in column 0 should now be filled, rows 6-7 might be null
-      // Actually: we had 6 tiles (rows 2-7), after drop they should be in rows 0-5
-      for (let r = 0; r < 6; r++) {
-        expect(droppedBoard[r][0]).not.toBeNull();
-      }
-      // Rows 6-7 in col 0 should be null (we only had 6 tiles)
-      // Actually wait - tiles at rows 2-7 = 6 tiles, they drop to rows 0-5, rows 6-7 are null
-      expect(droppedBoard[6][0]).toBeNull();
-      expect(droppedBoard[7][0]).toBeNull();
+      // Rows 3-5 in column 0 should now be filled (tiles from rows 0-2 dropped here)
+      expect(droppedBoard[3][0]).not.toBeNull();
+      expect(droppedBoard[4][0]).not.toBeNull();
+      expect(droppedBoard[5][0]).not.toBeNull();
+      // Rows 0-2 in column 0 should now be null (tiles moved down)
+      expect(droppedBoard[0][0]).toBeNull();
+      expect(droppedBoard[1][0]).toBeNull();
+      expect(droppedBoard[2][0]).toBeNull();
+      // Rows 6-7 in column 0 should still have tiles (they didn't move)
+      expect(droppedBoard[6][0]).not.toBeNull();
+      expect(droppedBoard[7][0]).not.toBeNull();
     });
 
     it('returns drop positions for animation', () => {
+      // Single null in middle of column 0 — tile above should drop down
       const board: Board = Array.from({ length: ROWS }, (_, r) =>
         Array.from({ length: COLS }, (_, c) => {
-          if (c === 0 && r === 0) return null;
+          if (c === 0 && r === 3) return null;
           return {
             id: `t-${r}-${c}`,
             type: ((r + c) % 6) as TileType,
@@ -290,6 +287,8 @@ describe('boardLogic', () => {
         expect(drop.to.row).toBeGreaterThanOrEqual(0);
         expect(drop.to.col).toBe(drop.from.col);
       });
+      // The tile at row 2 should drop to row 3
+      expect(drops.some((d) => d.from.row === 2 && d.from.col === 0 && d.to.row === 3)).toBe(true);
     });
   });
 

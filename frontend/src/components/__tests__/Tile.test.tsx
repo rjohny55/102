@@ -1,5 +1,5 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import TileComponent from '../Tile';
 import { Tile as TileData, TileType, GameStatus } from '../../game/types';
 
@@ -11,7 +11,7 @@ describe('TileComponent', () => {
   };
 
   it('renders without crashing', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { container } = render(
       <TileComponent
         tile={baseTile}
@@ -24,7 +24,7 @@ describe('TileComponent', () => {
   });
 
   it('calls onClick when clicked during idle state', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <TileComponent
         tile={baseTile}
@@ -39,7 +39,7 @@ describe('TileComponent', () => {
   });
 
   it('does not call onClick when game is in swapping state', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <TileComponent
         tile={baseTile}
@@ -54,7 +54,7 @@ describe('TileComponent', () => {
   });
 
   it('does not call onClick when game is in matching state', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <TileComponent
         tile={baseTile}
@@ -69,7 +69,7 @@ describe('TileComponent', () => {
   });
 
   it('renders with selected styles when isSelected is true', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { container } = render(
       <TileComponent
         tile={baseTile}
@@ -83,7 +83,7 @@ describe('TileComponent', () => {
   });
 
   it('renders with matched class when isMatched is true', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { container } = render(
       <TileComponent
         tile={baseTile}
@@ -98,7 +98,7 @@ describe('TileComponent', () => {
   });
 
   it('renders with new tile class when isNewTile is true', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { container } = render(
       <TileComponent
         tile={baseTile}
@@ -113,7 +113,7 @@ describe('TileComponent', () => {
   });
 
   it('displays correct emoji for each tile type', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const types: Array<{ type: TileType; emoji: string }> = [
       { type: TileType.RED, emoji: '🔴' },
       { type: TileType.BLUE, emoji: '🔵' },

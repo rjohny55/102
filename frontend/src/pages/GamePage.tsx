@@ -13,17 +13,15 @@ const GamePage: React.FC = () => {
   const [score, setScore] = useState(0);
   const [level, setLevel] = useState(1);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const handleUpdate = useCallback(
-    (newScore: number, newLevel: number, newTimeLeft: number, playing: boolean) => {
+    (newScore: number, newLevel: number, newTimeLeft: number) => {
       setScore(newScore);
       setLevel(newLevel);
       setTimeLeft(newTimeLeft);
-      setIsPlaying(playing);
     },
     [],
   );
@@ -31,7 +29,6 @@ const GamePage: React.FC = () => {
   const handleGameOver = useCallback(
     (finalScore: number, finalLevel: number, finalMoves: number) => {
       setGameResult({ score: finalScore, level: finalLevel, moves: finalMoves });
-      setIsPlaying(false);
     },
     [],
   );
@@ -68,7 +65,6 @@ const GamePage: React.FC = () => {
     setScore(0);
     setLevel(1);
     setTimeLeft(60);
-    setIsPlaying(false);
     setGameResult(null);
     setSaveMessage(null);
   }, []);
