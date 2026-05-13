@@ -26,7 +26,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    token = create_access_token(data={"sub": user.id})
+    token = create_access_token(data={"sub": str(user.id)})
     return TokenResponse(access_token=token, user=user)
 
 
@@ -39,5 +39,5 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
             detail="Invalid username or password",
         )
 
-    token = create_access_token(data={"sub": user.id})
+    token = create_access_token(data={"sub": str(user.id)})
     return TokenResponse(access_token=token, user=user)
